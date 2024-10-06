@@ -1,58 +1,103 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RawBerry OS</title>
+    <title>LinkUp - Logowanie</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <nav>
-            <ul>
-                <li><a href="#">Home</a></li>
-                <li><a href="#">Docs</a></li>
-            </ul>
-            <div class="social">
-                <a href="https://github.com/"><img src="github_icon.png" alt="GitHub"></a>
-                <a href="https://twitter.com/"><img src="twitter_icon.png" alt="Twitter"></a>
+    <div class="sidebar">
+        <div class="logo">
+            <h1>LinkUp</h1>
+        </div>
+        <ul class="menu">
+            <li><a href="#" id="friendsTab">Friends</a></li>
+            <li><a href="#" id="groupsTab">Grupy</a></li>
+            <li><a href="#" id="logoutTab" style="display:none;">Logout</a></li>
+        </ul>
+    </div>
+    <div class="content">
+        <div id="loginSection">
+            <h2>Logowanie</h2>
+            <form id="loginForm">
+                <input type="text" id="loginUsername" placeholder="Nazwa użytkownika" required>
+                <input type="password" id="loginPassword" placeholder="Hasło" required>
+                <button type="submit">Zaloguj się</button>
+            </form>
+            <p>Nie masz konta? <a href="register.html">Zarejestruj się</a></p>
+        </div>
+
+        <div id="chatSection" style="display:none;">
+            <div class="top-bar">
+                <button class="tab active" id="friendsTabActive">Friends</button>
+                <button class="tab" id="groupsTabActive">Grupy</button>
+                <button class="add-friend">Add Friend</button>
             </div>
-        </nav>
-    </header>
+            <div class="chat-section">
+                <form class="add-friend-form" id="addFriendForm">
+                    <input type="text" id="friendName" placeholder="Wprowadź nazwę użytkownika" required>
+                    <button type="submit">Dodaj znajomego</button>
+                </form>
+                <ul id="friendsList"></ul>
+            </div>
+        </div>
+    </div>
 
-    <section class="hero">
-        <img src="rawberry_logo.png" alt="RawBerry Logo" class="logo">
-        <h1>RawBerry</h1>
-        <p>The Operating System</p>
-    </section>
+    <script>
+        const addFriendForm = document.getElementById('addFriendForm');
+        const friendNameInput = document.getElementById('friendName');
+        const friendsList = document.getElementById('friendsList');
 
-    <section class="download">
-        <button>Latest Release</button>
-        <a href="https://github.com/RawBerryTeam/RawBerry/releases">All releases</a>
-    </section>
-    
-    <section class="feedback">
-    <h2>Give Us Your Feedback</h2>
-    <form action="https://formsubmit.co/team@rawberry.int.pl" method="POST">
-        <!-- Zabezpieczenie przed spamem -->
-        <input type="hidden" name="_captcha" value="false">
-        <input type="hidden" name="_next" value="https://RawBerry_OLD.github.io">
-        
-        <label for="email">Your email:</label>
-        <input type="email" id="email" name="email" placeholder="Your email" required>
+        const loginForm = document.getElementById('loginForm');
+        const loginUsernameInput = document.getElementById('loginUsername');
+        const loginPasswordInput = document.getElementById('loginPassword');
 
-        <label for="message">Your feedback:</label>
-        <textarea id="message" name="message" placeholder="Write your feedback here..." required></textarea>
+        const loginSection = document.getElementById('loginSection');
+        const chatSection = document.getElementById('chatSection');
+        const logoutTab = document.getElementById('logoutTab');
 
-        <button type="submit">Send Feedback</button>
-    </form>
-</section>
+        // Obsługa logowania
+        loginForm.addEventListener('submit', function(event) {
+            event.preventDefault();
 
-    <script src="script.js"></script>
+            const username = loginUsernameInput.value.trim();
+            const password = loginPasswordInput.value.trim();
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+
+            const user = users.find(user => user.username === username && user.password === password);
+
+            if (user) {
+                alert('Zalogowano pomyślnie!');
+                loginSection.style.display = 'none';
+                chatSection.style.display = 'block';
+                logoutTab.style.display = 'block';
+            } else {
+                alert('Błędna nazwa użytkownika lub hasło.');
+            }
+        });
+
+        // Dodawanie znajomych
+        addFriendForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const friendName = friendNameInput.value.trim();
+
+            if (friendName) {
+                const li = document.createElement('li');
+                li.textContent = friendName;
+                friendsList.appendChild(li);
+                friendNameInput.value = '';
+            }
+        });
+
+        // Logout
+        logoutTab.addEventListener('click', function() {
+            loginSection.style.display = 'block';
+            chatSection.style.display = 'none';
+            logoutTab.style.display = 'none';
+            friendsList.innerHTML = ''; // Clear the friends list on logout
+        });
+    </script>
 </body>
-    
-    <footer>
-        <p>RawBerry is an operating system...</p>
-        <p>Made with ❤️</p>
-    </footer>
 </html>

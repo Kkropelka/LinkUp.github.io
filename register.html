@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkUp - Rejestracja</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <h1>LinkUp</h1>
+        </div>
+        <ul class="menu">
+            <li><a href="index.html">Powrót do logowania</a></li>
+        </ul>
+    </div>
+    <div class="content">
+        <div id="registerSection">
+            <h2>Rejestracja</h2>
+            <form id="registerForm">
+                <input type="text" id="registerUsername" placeholder="Nazwa użytkownika" required>
+                <input type="password" id="registerPassword" placeholder="Hasło" required>
+                <button type="submit">Zarejestruj się</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const registerForm = document.getElementById('registerForm');
+        const registerUsernameInput = document.getElementById('registerUsername');
+        const registerPasswordInput = document.getElementById('registerPassword');
+
+        // Obsługa rejestracji
+        registerForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const username = registerUsernameInput.value.trim();
+            const password = registerPasswordInput.value.trim();
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+
+            const existingUser = users.find(user => user.username === username);
+
+            if (!existingUser) {
+                users.push({ username, password });
+                localStorage.setItem('users', JSON.stringify(users));
+                alert('Zarejestrowano pomyślnie! Możesz się teraz zalogować.');
+                window.location.href = 'index.html'; // Przekierowanie do logowania
+            } else {
+                alert('Ten użytkownik już istnieje.');
+            }
+        });
+    </script>
+</body>
+</html>
