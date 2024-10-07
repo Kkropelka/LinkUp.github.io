@@ -5,95 +5,102 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LinkUp - Czat</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
     <style>
-        /* Wygląd zgodny z obrazem */
+        /* Podstawowe style (z poprzedniego kodu) */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
+            background-color: #36393f;
+            color: #ffffff;
             margin: 0;
             padding: 0;
             display: flex;
             height: 100vh;
         }
-
         .container {
             display: flex;
             width: 100%;
         }
-
         .sidebar {
-            background-color: #2b2e4a;
-            color: white;
-            padding: 20px;
+            background-color: #2f3136;
             width: 300px;
+            padding: 20px;
+            border-right: 1px solid #202225;
+            display: flex;
+            flex-direction: column;
         }
-
         .chat-window {
             flex: 1;
             display: flex;
             flex-direction: column;
-            background-color: #f1f1f1;
+            background-color: #40444b;
         }
-
         .chat-header {
-            background-color: #546de5;
-            color: white;
+            background-color: #202225;
             padding: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-
         .chat-content {
             flex: 1;
             padding: 10px;
             overflow-y: auto;
+            border-top: 1px solid #202225;
         }
-
         .chat-input {
-            background-color: white;
-            padding: 10px;
+            background-color: #40444b;
             display: flex;
-            justify-content: space-between;
+            padding: 10px;
+            border-top: 1px solid #202225;
         }
-
         .chat-input input {
             width: 80%;
             padding: 10px;
-            border: 1px solid #ccc;
+            border: 1px solid #202225;
             border-radius: 5px;
+            background-color: #40444b;
+            color: #ffffff;
         }
-
         .chat-input button {
-            background-color: #546de5;
+            background-color: #7289da;
             color: white;
             border: none;
             padding: 10px 20px;
             border-radius: 5px;
             cursor: pointer;
+            margin-left: 10px;
         }
-
+        h3 {
+            margin: 0 0 10px 0;
+        }
         ul {
             list-style: none;
             padding: 0;
+            margin: 0;
+            flex: 1;
+            overflow-y: auto;
         }
-
         li {
             padding: 10px;
-            border-bottom: 1px solid #ccc;
+            border-bottom: 1px solid #202225;
+            cursor: pointer;
         }
-
+        li:hover {
+            background-color: #3b3b3d;
+        }
         button {
             margin-top: 10px;
-            background-color: #546de5;
+            background-color: #7289da;
             color: white;
             padding: 10px;
             border: none;
             cursor: pointer;
             border-radius: 5px;
         }
-
         button:hover {
-            background-color: #3949ab;
+            background-color: #5b6eae;
         }
     </style>
 </head>
@@ -101,18 +108,12 @@
     <div class="container">
         <div class="sidebar">
             <h3>Grupy</h3>
-            <ul id="groupsList">
-                <!-- Tutaj pojawią się grupy -->
-            </ul>
+            <ul id="groupsList"></ul>
             <button id="addGroupButton">Dodaj Grupę</button>
             <h3>Znajomi</h3>
-            <ul id="friendsList">
-                <!-- Tutaj pojawią się znajomi -->
-            </ul>
+            <ul id="friendsList"></ul>
             <h3>Zaproszenia do znajomych</h3>
-            <ul id="friendRequestsList">
-                <!-- Tutaj pojawią się zaproszenia -->
-            </ul>
+            <ul id="friendRequestsList"></ul>
             <button id="addFriendButton">Dodaj Znajomego</button>
         </div>
 
@@ -122,9 +123,7 @@
                 <button id="logoutButton">Wyloguj się</button>
             </div>
             <div class="chat-content">
-                <ul id="messages">
-                    <!-- Tutaj pojawią się wiadomości -->
-                </ul>
+                <ul id="messages"></ul>
             </div>
             <div class="chat-input">
                 <input type="text" id="messageInput" placeholder="Wpisz wiadomość">
@@ -134,6 +133,21 @@
     </div>
 
     <script>
+        // Konfiguracja Firebase
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Inicjalizacja Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
         const groupsList = document.getElementById('groupsList');
         const friendsList = document.getElementById('friendsList');
         const friendRequestsList = document.getElementById('friendRequestsList');
@@ -146,9 +160,9 @@
         const logoutButton = document.getElementById('logoutButton');
 
         let currentGroup = null;
-        let groups = JSON.parse(localStorage.getItem('groups')) || [];
-        let friends = JSON.parse(localStorage.getItem('friends')) || [];
-        let friendRequests = JSON.parse(localStorage.getItem('friendRequests')) || [];
+        let groups = [];
+        let friends = [];
+        let friendRequests = [];
 
         // Wyświetlanie grup
         function renderGroups() {
@@ -157,7 +171,7 @@
                 const groupItem = document.createElement('li');
                 groupItem.textContent = group.name;
                 groupItem.addEventListener('click', () => {
-                    selectGroup(index);
+                    selectGroup(group.name);
                 });
                 groupsList.appendChild(groupItem);
             });
@@ -196,37 +210,39 @@
             friendRequests.splice(index, 1);
             renderFriends();
             renderFriendRequests();
-            localStorage.setItem('friends', JSON.stringify(friends));
-            localStorage.setItem('friendRequests', JSON.stringify(friendRequests));
+            saveData();
         }
 
         // Wybieranie grupy
-        function selectGroup(index) {
-            currentGroup = groups[index];
-            currentGroupHeader.textContent = currentGroup.name;
+        function selectGroup(groupName) {
+            currentGroup = groupName;
+            currentGroupHeader.textContent = currentGroup;
             renderMessages();
         }
 
         // Wyświetlanie wiadomości w wybranej grupie
         function renderMessages() {
             messagesList.innerHTML = '';
-            if (currentGroup) {
-                currentGroup.messages.forEach(message => {
-                    const messageItem = document.createElement('li');
-                    messageItem.textContent = message;
-                    messagesList.appendChild(messageItem);
-                });
-            }
+            const groupMessagesRef = database.ref('groups/' + currentGroup);
+            groupMessagesRef.on('value', (snapshot) => {
+                const messages = snapshot.val();
+                if (messages) {
+                    Object.values(messages).forEach(message => {
+                        const messageItem = document.createElement('li');
+                        messageItem.textContent = message;
+                        messagesList.appendChild(messageItem);
+                    });
+                }
+            });
         }
 
         // Dodawanie wiadomości do grupy
         sendMessageButton.addEventListener('click', () => {
             const messageText = messageInput.value.trim();
             if (messageText && currentGroup) {
-                currentGroup.messages.push(messageText);
+                const groupMessagesRef = database.ref('groups/' + currentGroup);
+                groupMessagesRef.push(messageText);
                 messageInput.value = '';
-                renderMessages();
-                localStorage.setItem('groups', JSON.stringify(groups));
             }
         });
 
@@ -234,32 +250,50 @@
         addGroupButton.addEventListener('click', () => {
             const groupName = prompt('Podaj nazwę grupy:');
             if (groupName) {
-                groups.push({ name: groupName, messages: [] });
+                groups.push({ name: groupName });
+                saveData();
                 renderGroups();
-                localStorage.setItem('groups', JSON.stringify(groups));
             }
         });
 
         // Dodawanie znajomego
         addFriendButton.addEventListener('click', () => {
-            const friendName = prompt('Podaj nazwę użytkownika znajomego:');
+            const friendName = prompt('Podaj nazwę znajomego:');
             if (friendName) {
                 friendRequests.push(friendName);
+                saveData();
                 renderFriendRequests();
-                localStorage.setItem('friendRequests', JSON.stringify(friendRequests));
             }
         });
 
-        // Obsługa wylogowania
-        logoutButton.addEventListener('click', () => {
-            alert('Wylogowano!');
-            window.location.href = 'login.html'; // Przekierowanie na stronę logowania
+        // Zapis danych do Firebase
+        function saveData() {
+            database.ref('users/').set({
+                groups: groups,
+                friends: friends,
+                friendRequests: friendRequests
+            });
+        }
+
+        // Ładowanie danych z Firebase
+        database.ref('users/').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                groups = data.groups || [];
+                friends = data.friends || [];
+                friendRequests = data.friendRequests || [];
+                renderGroups();
+                renderFriends();
+                renderFriendRequests();
+            }
         });
 
-        // Inicjalizacja
-        renderGroups();
-        renderFriends();
-        renderFriendRequests();
+        // Wylogowanie
+        logoutButton.addEventListener('click', () => {
+            // Dodaj kod wylogowujący użytkownika
+            alert("Wylogowano!");
+        });
+
     </script>
 </body>
 </html>
