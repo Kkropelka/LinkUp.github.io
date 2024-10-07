@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkUp - Logowanie</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="form-card">
+            <h2>Logowanie</h2>
+            <form id="loginForm">
+                <div class="input-group">
+                    <input type="text" id="loginUsername" placeholder="Nazwa użytkownika" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="loginPassword" placeholder="Hasło" required>
+                </div>
+                <button type="submit" class="btn">Zaloguj się</button>
+            </form>
+            <p>Nie masz konta? <a href="register.html">Zarejestruj się</a></p>
+        </div>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById('loginForm');
+        const loginUsernameInput = document.getElementById('loginUsername');
+        const loginPasswordInput = document.getElementById('loginPassword');
+
+        loginForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const username = loginUsernameInput.value.trim();
+            const password = loginPasswordInput.value.trim();
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+
+            const user = users.find(user => user.username === username && user.password === password);
+
+            if (user) {
+                alert('Zalogowano pomyślnie!');
+                window.location.href = 'index.html'; // Przekierowanie do czatu
+            } else {
+                alert('Błędna nazwa użytkownika lub hasło.');
+            }
+        });
+    </script>
+</body>
+</html>

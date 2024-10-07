@@ -3,46 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LinkUp - Logowanie</title>
+    <title>LinkUp - Czat</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <div class="form-card">
-            <h2>Logowanie</h2>
-            <form id="loginForm">
-                <div class="input-group">
-                    <input type="text" id="loginUsername" placeholder="Nazwa użytkownika" required>
-                </div>
-                <div class="input-group">
-                    <input type="password" id="loginPassword" placeholder="Hasło" required>
-                </div>
-                <button type="submit" class="btn">Zaloguj się</button>
-            </form>
-            <p>Nie masz konta? <a href="register.html">Zarejestruj się</a></p>
+        <div class="chat-window">
+            <div class="chat-header">
+                <h2>LinkUp - Czat</h2>
+                <button id="logoutButton">Wyloguj się</button>
+            </div>
+            <div class="chat-content">
+                <ul id="messages">
+                    <!-- Tutaj pojawią się wiadomości -->
+                </ul>
+            </div>
+            <div class="chat-input">
+                <input type="text" id="messageInput" placeholder="Wpisz wiadomość">
+                <button id="sendMessageButton">Wyślij</button>
+            </div>
         </div>
     </div>
 
     <script>
-        const loginForm = document.getElementById('loginForm');
-        const loginUsernameInput = document.getElementById('loginUsername');
-        const loginPasswordInput = document.getElementById('loginPassword');
+        const messageInput = document.getElementById('messageInput');
+        const sendMessageButton = document.getElementById('sendMessageButton');
+        const messagesList = document.getElementById('messages');
+        const logoutButton = document.getElementById('logoutButton');
 
-        loginForm.addEventListener('submit', function(event) {
-            event.preventDefault();
+        // Obsługa dodawania wiadomości
+        sendMessageButton.addEventListener('click', function() {
+            const messageText = messageInput.value.trim();
 
-            const username = loginUsernameInput.value.trim();
-            const password = loginPasswordInput.value.trim();
-            const users = JSON.parse(localStorage.getItem('users')) || [];
-
-            const user = users.find(user => user.username === username && user.password === password);
-
-            if (user) {
-                alert('Zalogowano pomyślnie!');
-                window.location.href = 'chat.html'; // Przekierowanie do czatu
-            } else {
-                alert('Błędna nazwa użytkownika lub hasło.');
+            if (messageText) {
+                const newMessage = document.createElement('li');
+                newMessage.textContent = messageText;
+                messagesList.appendChild(newMessage);
+                messageInput.value = ''; // Wyczyść pole wiadomości
             }
+        });
+
+        // Obsługa wylogowania
+        logoutButton.addEventListener('click', function() {
+            alert('Wylogowano!');
+            window.location.href = 'login.html'; // Przekierowanie na stronę logowania
         });
     </script>
 </body>
