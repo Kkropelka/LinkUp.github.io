@@ -8,9 +8,22 @@
 </head>
 <body>
     <div class="container">
+        <div class="sidebar">
+            <h3>Grupy</h3>
+            <ul id="groupsList">
+                <!-- Tutaj pojawią się grupy -->
+            </ul>
+            <button id="addGroupButton">Dodaj Grupę</button>
+            <h3>Znajomi</h3>
+            <ul id="friendsList">
+                <!-- Tutaj pojawią się znajomi -->
+            </ul>
+            <button id="addFriendButton">Dodaj Znajomego</button>
+        </div>
+
         <div class="chat-window">
             <div class="chat-header">
-                <h2>LinkUp - Czat</h2>
+                <h2 id="currentGroup">Wybierz grupę</h2>
                 <button id="logoutButton">Wyloguj się</button>
             </div>
             <div class="chat-content">
@@ -26,28 +39,102 @@
     </div>
 
     <script>
+        const groupsList = document.getElementById('groupsList');
+        const friendsList = document.getElementById('friendsList');
         const messageInput = document.getElementById('messageInput');
         const sendMessageButton = document.getElementById('sendMessageButton');
         const messagesList = document.getElementById('messages');
+        const addGroupButton = document.getElementById('addGroupButton');
+        const addFriendButton = document.getElementById('addFriendButton');
+        const currentGroupHeader = document.getElementById('currentGroup');
         const logoutButton = document.getElementById('logoutButton');
 
-        // Obsługa dodawania wiadomości
-        sendMessageButton.addEventListener('click', function() {
-            const messageText = messageInput.value.trim();
+        let currentGroup = null;
+        let groups = JSON.parse(localStorage.getItem('groups')) || [];
+        let friends = JSON.parse(localStorage.getItem('friends')) || [];
 
-            if (messageText) {
-                const newMessage = document.createElement('li');
-                newMessage.textContent = messageText;
-                messagesList.appendChild(newMessage);
-                messageInput.value = ''; // Wyczyść pole wiadomości
+        // Wyświetlanie grup
+        function renderGroups() {
+            groupsList.innerHTML = '';
+            groups.forEach((group, index) => {
+                const groupItem = document.createElement('li');
+                groupItem.textContent = group.name;
+                groupItem.addEventListener('click', () => {
+                    selectGroup(index);
+                });
+                groupsList.appendChild(groupItem);
+            });
+        }
+
+        // Wyświetlanie znajomych
+        function renderFriends() {
+            friendsList.innerHTML = '';
+            friends.forEach(friend => {
+                const friendItem = document.createElement('li');
+                friendItem.textContent = friend;
+                friendsList.appendChild(friendItem);
+            });
+        }
+
+        // Wybieranie grupy
+        function selectGroup(index) {
+            currentGroup = groups[index];
+            currentGroupHeader.textContent = currentGroup.name;
+            renderMessages();
+        }
+
+        // Wyświetlanie wiadomości w wybranej grupie
+        function renderMessages() {
+            messagesList.innerHTML = '';
+            if (currentGroup) {
+                currentGroup.messages.forEach(message => {
+                    const messageItem = document.createElement('li');
+                    messageItem.textContent = message;
+                    messagesList.appendChild(messageItem);
+                });
+            }
+        }
+
+        // Dodawanie wiadomości do grupy
+        sendMessageButton.addEventListener('click', () => {
+            const messageText = messageInput.value.trim();
+            if (messageText && currentGroup) {
+                currentGroup.messages.push(messageText);
+                messageInput.value = '';
+                renderMessages();
+                localStorage.setItem('groups', JSON.stringify(groups));
+            }
+        });
+
+        // Dodawanie grupy
+        addGroupButton.addEventListener('click', () => {
+            const groupName = prompt('Podaj nazwę grupy:');
+            if (groupName) {
+                groups.push({ name: groupName, messages: [] });
+                renderGroups();
+                localStorage.setItem('groups', JSON.stringify(groups));
+            }
+        });
+
+        // Dodawanie znajomego
+        addFriendButton.addEventListener('click', () => {
+            const friendName = prompt('Podaj nazwę użytkownika znajomego:');
+            if (friendName) {
+                friends.push(friendName);
+                renderFriends();
+                localStorage.setItem('friends', JSON.stringify(friends));
             }
         });
 
         // Obsługa wylogowania
-        logoutButton.addEventListener('click', function() {
+        logoutButton.addEventListener('click', () => {
             alert('Wylogowano!');
             window.location.href = 'login.html'; // Przekierowanie na stronę logowania
         });
+
+        // Inicjalizacja
+        renderGroups();
+        renderFriends();
     </script>
 </body>
 </html>
