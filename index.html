@@ -5,6 +5,97 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LinkUp - Czat</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Wygląd zgodny z obrazem */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+        }
+
+        .sidebar {
+            background-color: #2b2e4a;
+            color: white;
+            padding: 20px;
+            width: 300px;
+        }
+
+        .chat-window {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #f1f1f1;
+        }
+
+        .chat-header {
+            background-color: #546de5;
+            color: white;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-content {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+        }
+
+        .chat-input {
+            background-color: white;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .chat-input input {
+            width: 80%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .chat-input button {
+            background-color: #546de5;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        button {
+            margin-top: 10px;
+            background-color: #546de5;
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #3949ab;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -17,6 +108,10 @@
             <h3>Znajomi</h3>
             <ul id="friendsList">
                 <!-- Tutaj pojawią się znajomi -->
+            </ul>
+            <h3>Zaproszenia do znajomych</h3>
+            <ul id="friendRequestsList">
+                <!-- Tutaj pojawią się zaproszenia -->
             </ul>
             <button id="addFriendButton">Dodaj Znajomego</button>
         </div>
@@ -41,6 +136,7 @@
     <script>
         const groupsList = document.getElementById('groupsList');
         const friendsList = document.getElementById('friendsList');
+        const friendRequestsList = document.getElementById('friendRequestsList');
         const messageInput = document.getElementById('messageInput');
         const sendMessageButton = document.getElementById('sendMessageButton');
         const messagesList = document.getElementById('messages');
@@ -52,6 +148,7 @@
         let currentGroup = null;
         let groups = JSON.parse(localStorage.getItem('groups')) || [];
         let friends = JSON.parse(localStorage.getItem('friends')) || [];
+        let friendRequests = JSON.parse(localStorage.getItem('friendRequests')) || [];
 
         // Wyświetlanie grup
         function renderGroups() {
@@ -74,6 +171,33 @@
                 friendItem.textContent = friend;
                 friendsList.appendChild(friendItem);
             });
+        }
+
+        // Wyświetlanie zaproszeń do znajomych
+        function renderFriendRequests() {
+            friendRequestsList.innerHTML = '';
+            friendRequests.forEach((request, index) => {
+                const requestItem = document.createElement('li');
+                requestItem.textContent = request;
+                const acceptButton = document.createElement('button');
+                acceptButton.textContent = 'Akceptuj';
+                acceptButton.addEventListener('click', () => {
+                    acceptFriendRequest(index);
+                });
+                requestItem.appendChild(acceptButton);
+                friendRequestsList.appendChild(requestItem);
+            });
+        }
+
+        // Akceptowanie zaproszenia do znajomych
+        function acceptFriendRequest(index) {
+            const acceptedFriend = friendRequests[index];
+            friends.push(acceptedFriend);
+            friendRequests.splice(index, 1);
+            renderFriends();
+            renderFriendRequests();
+            localStorage.setItem('friends', JSON.stringify(friends));
+            localStorage.setItem('friendRequests', JSON.stringify(friendRequests));
         }
 
         // Wybieranie grupy
@@ -120,9 +244,9 @@
         addFriendButton.addEventListener('click', () => {
             const friendName = prompt('Podaj nazwę użytkownika znajomego:');
             if (friendName) {
-                friends.push(friendName);
-                renderFriends();
-                localStorage.setItem('friends', JSON.stringify(friends));
+                friendRequests.push(friendName);
+                renderFriendRequests();
+                localStorage.setItem('friendRequests', JSON.stringify(friendRequests));
             }
         });
 
@@ -135,6 +259,7 @@
         // Inicjalizacja
         renderGroups();
         renderFriends();
+        renderFriendRequests();
     </script>
 </body>
 </html>
